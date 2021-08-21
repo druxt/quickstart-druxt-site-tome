@@ -24,4 +24,3 @@ web/sites/simpletest
 web/robots.txt
 .editorconfig
 .gitattributes
-.ddev/docker-compose.host-docker-internal.yaml

@@ -10,26 +10,18 @@
     },
     "repositories": [
         {
-            "type": "vcs",
-            "url": "https://github.com/realityloop/tome_drush"
-        },
-        {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
         }
     ],
     "require": {
-        "composer/installers": "2.2.0",
-        "drupal-tome/tome_drush": "dev-feature/3-drush_11",
-        "drupal/core-composer-scaffold": "9.4.5",
-        "drupal/core-project-message": "9.4.5",
-        "drupal/core-recommended": "9.4.5",
-        "drupal/druxt": "1.1.1",
-        "drupal/tome": "^1.7",
-        "drush/drush": "^11.1"
+        "composer/installers": "^1.9",
+        "drupal/core-composer-scaffold": "^9.3",
+        "drupal/core-project-message": "^9.3",
+        "drupal/core-recommended": "^9.3"
     },
     "require-dev": {
-        "drupal/core-dev": "9.4.5"
+        "drupal/core-dev": "^9.3"
     },
     "conflict": {
         "drupal/drupal": "*"
@@ -37,13 +29,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "composer/installers": true,
-            "drupal/core-composer-scaffold": true,
-            "drupal/core-project-message": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        }
+        "sort-packages": true
     },
     "extra": {
         "drupal-scaffold": {
