@@ -1,5 +1,3 @@
-const baseUrl = process.env.BASE_URL
-
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -35,17 +33,7 @@ export default {
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
-    'druxt-site',
   ],
-
-  // DruxtJS: https://druxtjs.org
-  druxt: {
-    baseUrl,
-    // Disable deprecated Entity fields.
-    entity: { components: { fields: false }},
-    // Set the default theme to render Site regions.
-    site: { theme: 'olivero' },
-  },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
