@@ -14,7 +14,7 @@ This repostory provides a quickstart installation of:
 
 Try it before you fork it:
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/druxt/quickstart-druxt-site)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/druxt/quickstart-druxt-site-tome)
 
 
 ## Getting started
@@ -23,7 +23,7 @@ Try it before you fork it:
 
 2. Once the repository has been generated, open it in Gitpod by appending `https://gitpod.io#` to the GitHub url.
 
-   Example: `https://gitpod.io#github.com/druxt/quickstart-druxt-site`
+   Example: `https://gitpod.io#github.com/druxt/quickstart-druxt-site-tome`
 
    _Note:_ If this is your first time using Gitpod, you can signup for a free plan with your Github account.
 
