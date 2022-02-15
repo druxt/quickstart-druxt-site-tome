@@ -1,4 +1,4 @@
-# DruxtSite quickstart - Drupal
+# DruxtSite quickstart - Drupal with Tome sync
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/druxt/quickstart-druxt-site/tree/develop.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/druxt/quickstart-druxt-site/tree/develop)
 
@@ -7,7 +7,7 @@
 DruxtSite connects Drupal to Nuxt via JSON:API to provide a framework for building a Fully Decoupled site.
 
 This repostory provides a quickstart installation of:
-- Drupal 9
+- Drupal 9 with Tome sync
 - Nuxt 2
 - DruxtSite
 - DruxtAuth
@@ -73,7 +73,7 @@ Try it before you fork it:
 
 ## How to use it
 
-Your environment contains a pre-install, pre-configured and running instance of Drupal and Nuxt, with the DruxtSite module enabled.
+Your environment contains a pre-install, pre-configured and running instance of Drupal with Tome, and Nuxt with the DruxtSite module enabled.
 
 You can access the services in your browser, via the **Remote Explorer** extension, or via the URL pattern: `https://[PORT]-[GITPOD_ID].[GITPOD_SERVER].gitpod.io`
 
@@ -118,6 +118,13 @@ this.$auth.loginWith('drupal-authorization_code')
 Druxt integrates with the Nuxt Storybook module to provide zero-configuration, auto-discovery stories with access to live data from your Drupal backend.
 
 To start Storybook, navigate to the `nuxt` directory and run `npx nuxt storybook`.
+
+
+### Tome sync
+
+Tome sync is a static storage system for content, allowing you to keep your content up to date without the need of a database.
+
+See the project page for more details: https://www.drupal.org/project/tome
 
 
 ## License
