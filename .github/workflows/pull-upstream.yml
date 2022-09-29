@@ -1,0 +1,67 @@
+name: pull-upstream
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  pull_upstream:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [16]
+
+    steps:
+      - name: Setup Git
+        run: |
+          git config --global user.email "ci@druxtjs.org"
+          git config --global user.name "DruxtCI"
+      - name: Checkout 🛎
+        uses: actions/checkout@master
+      - name: Checkout upstream 🛎
+        run: git remote add upstream https://github.com/druxt/quickstart-druxt-site.git && git fetch upstream
+
+      # @TODO - Move this to after the git diff so it's only done if there's
+      #         any changes to pull in. That will also require stashing of the
+      #         changes, so the site can install before being upgraded.
+      - name: Setup ddev
+        uses: jonaseberle/github-action-setup-ddev@v1
+        with:
+          autostart: false
+      - name: Start ddev 👨🏻‍💻
+        run: cd drupal && ddev start
+      - name: Install Drupal 👨🏻‍💻
+        run: cd drupal && ddev composer install && ddev drush -y tome:install
+
+      - name: Rebase upstream develop 🛎
+        run: git stash && git rebase -Xours upstream/develop
+      - name: Various fixes
+        run: sed -i 's/quickstart-druxtsite/drupal/g' drupal/.ddev/config.yaml
+
+      - name: Reinstall Tome 👨🏻‍💻
+        run: cd drupal && ddev composer require drupal/tome drupal-tome/tome_drush -W
+
+      - name: Update from upstream 👨🏻‍💻
+        run: cd drupal && ddev composer install && ddev drush updb -y && ddev drush cim -y
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v4
+        with:
+          base: develop
+          body: ''
+          branch: upstream
+          commit-message: "chore: rebase from upstream"
+          delete-branch: true
+          title: "chore: rebase from upstream"
+      - name: Pull Request output
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+
+      # - name: Setup upterm session
+      #   uses: lhotari/action-upterm@v1
