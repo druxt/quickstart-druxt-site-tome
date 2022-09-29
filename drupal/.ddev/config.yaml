@@ -1,4 +1,4 @@
-name: quickstart-druxtsite
+name: quickstart-druxtsite-tome
 type: drupal9
 docroot: web
 php_version: "8.1"
