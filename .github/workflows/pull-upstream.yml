@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - feature/24-upstream
 
 jobs:
   pull_upstream:
@@ -21,8 +22,11 @@ jobs:
           git config --global user.name "DruxtCI"
       - name: Checkout 🛎
         uses: actions/checkout@master
+        with:
+          ref: develop
       - name: Checkout upstream 🛎
         run: git remote add upstream https://github.com/druxt/quickstart-druxt-site.git && git fetch upstream
+      - run: git branch --all -v
 
       # @TODO - Move this to after the git diff so it's only done if there's
       #         any changes to pull in. That will also require stashing of the
@@ -38,10 +42,22 @@ jobs:
       - name: Install Drupal 👨🏻‍💻
         run: cd drupal && ddev composer install && ddev drush -y tome:install
 
-      - name: Rebase upstream develop 🛎
-        run: git stash && git rebase -Xours upstream/develop
-      - name: Various fixes
-        run: sed -i 's/quickstart-druxtsite/quickstart-druxtsite-tome/g' drupal/.ddev/config.yaml
+      # - name: Rebase upstream develop 🛎
+      #   run: git stash && git rebase -X ours upstream/develop
+
+      - name: Merge upstream develop 🛎
+        run: git stash && git pull -X ours upstream develop --allow-unrelated-histories --rebase
+
+      # - name: Checkout Upstream (druxt/quickstart-druxt-site) 🛎
+      #   uses: actions/checkout@master
+      #   with:
+      #     repository: druxt/quickstart-druxt-site
+      #     ref: develop
+      #     path: upstream
+
+      - name: Find and Replace strings
+        run: |
+          sed -i 's/quickstart-druxtsite/quickstart-druxtsite-tome/g' drupal/.ddev/config.yaml
 
       - name: Reinstall Tome 👨🏻‍💻
         run: cd drupal && ddev composer require drupal/tome drupal-tome/tome_drush -W
