@@ -31,6 +31,8 @@ jobs:
         uses: jonaseberle/github-action-setup-ddev@v1
         with:
           autostart: false
+      - name: Setup .env 👨🏻‍💻
+        run: cp .env.example .env
       - name: Start ddev 👨🏻‍💻
         run: cd drupal && ddev start
       - name: Install Drupal 👨🏻‍💻
@@ -39,7 +41,7 @@ jobs:
       - name: Rebase upstream develop 🛎
         run: git stash && git rebase -Xours upstream/develop
       - name: Various fixes
-        run: sed -i 's/quickstart-druxtsite/drupal/g' drupal/.ddev/config.yaml
+        run: sed -i 's/quickstart-druxtsite/quickstart-druxtsite-tome/g' drupal/.ddev/config.yaml
 
       - name: Reinstall Tome 👨🏻‍💻
         run: cd drupal && ddev composer require drupal/tome drupal-tome/tome_drush -W
