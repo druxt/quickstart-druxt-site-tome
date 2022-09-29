@@ -1,6 +1,9 @@
-const baseUrl = process.env.BASE_URL
+require('dotenv').config({ path: '../.env' })
+const baseUrl = process.env.BASE_URL || ''
 
 export default {
+  target: process.env.NUXT_TARGET,
+
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     title: 'quickstart-druxt-site',
@@ -31,12 +34,14 @@ export default {
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
+    // https://go.nuxtjs.dev/eslint
+    '@nuxtjs/eslint-module',
+    ['druxt-auth', { clientId: process.env.OAUTH_CLIENT_ID }],
+    'druxt-site'
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
-  modules: [
-    'druxt-site',
-  ],
+  modules: [],
 
   // DruxtJS: https://druxtjs.org
   druxt: {

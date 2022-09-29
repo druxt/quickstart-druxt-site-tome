@@ -1,8 +1,16 @@
 #!/bin/bash
 
-## Description: Install Drupal
+## Description: Installs Drupal with Tome.
 ## Usage: drupal-install
 ## Example: "ddev drupal-install"
 
+# Install composer dependencies.
 composer install
+
+# Install Drupal with Tome.
 drush -y tome:install
+
+# Configure and generate keys for Simple OAuth.
+# drush -y config:set simple_oauth.settings public_key ../keys/public.key
+# drush -y config:set simple_oauth.settings private_key ../keys/private.key
+# drush simple-oauth:generate-keys ../keys

@@ -1,5 +1,7 @@
 # DruxtSite quickstart - Drupal with Tome sync
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/druxt/quickstart-druxt-site-tome/tree/develop.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/druxt/quickstart-druxt-site-tome/tree/develop)
+
 > One click, Fully Decoupled Drupal Site starter-kit with Druxt.
 
 DruxtSite connects Drupal to Nuxt via JSON:API to provide a framework for building a Fully Decoupled site.
@@ -8,6 +10,8 @@ This repostory provides a quickstart installation of:
 - Drupal 9 with Tome sync
 - Nuxt 2
 - DruxtSite
+- DruxtAuth
+- Node v16
 
 
 ## Quickstart
@@ -18,6 +22,41 @@ Try it before you fork it:
 
 
 ## Getting started
+
+### Local development (ddev)
+
+1. Click the **Use this template** button in GitHub and follow the on-screen instructions to **Create a new repository**.
+
+2. Clone the repository locally.
+
+   Example: `git clone git@github.com:druxt/quickstart-druxt-site-tome.git`
+
+3. Setup an `.env` file and update as required: `cp .env.example .env`
+
+4. Install and setup Drupal:
+
+   (from repository root)
+
+   ```
+   cd drupal
+   ddev start
+   ddev drupal-install
+   ddev druxt-add-consumer
+   ```
+
+5. Install and run Nuxt:
+
+   (from repository root)
+
+   ```
+   cd nuxt
+   nvm use
+   npm install
+   npm run dev
+   ```
+
+
+### Cloud development (Gitpod.io)
 
 1. Click the **Use this template** button in GitHub and follow the on-screen instructions to **Create a new repository**.
 
@@ -60,6 +99,17 @@ These commands should be run from within the `/drupal` folder.
 
 Refer to the documentation for more details: https://ddev.readthedocs.io
 
+### @nuxtjs/auth-next
+
+> Zero-boilerplate authentication support for Nuxt.js!
+
+The @nuxtjs/auth-next module is installed and configured to connect to the Drupal Simple OAuth module by way of the DruxtAuth module:
+
+```js
+this.$auth.loginWith('drupal-authorization_code')
+```
+
+- More details on how to use the `$auth` service can be found at https://auth.nuxtjs.org/api/auth
 
 ### @nuxtjs/storybook
 
