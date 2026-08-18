@@ -23,6 +23,11 @@ drush -y site-install --existing-config
 drush -y tome:import
 
 # Generate keys for Simple OAuth (public_key/private_key config values are
-# already committed, pointing here).
-mkdir -p ../keys
-drush simple-oauth:generate-keys ../keys
+# already committed, pointing here). Absolute path on purpose: this
+# command's cwd is /var/www/html (the mounted project root), so a
+# relative ../keys would land OUTSIDE the mount - ephemeral, and not the
+# drupal/keys/ location the committed config resolves to (Drupal-side
+# paths resolve relative to the app root web/).
+KEYS_DIR="/var/www/html/keys"
+mkdir -p "$KEYS_DIR"
+drush simple-oauth:generate-keys "$KEYS_DIR"
