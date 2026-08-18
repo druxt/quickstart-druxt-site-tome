@@ -1,16 +1,195 @@
 stages:
+  - lint
   - build
   - test
 
 variables:
-  PHP_APT_PACKAGES: "git unzip libsqlite3-dev libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev libxml2-dev"
-  PHP_EXTENSIONS: "mbstring pdo_sqlite intl gd xml zip opcache"
-  CYPRESS_APT_PACKAGES: "libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb"
+  PHP_APT_PACKAGES: 'git unzip libsqlite3-dev libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libonig-dev libxml2-dev'
+  PHP_EXTENSIONS: 'mbstring pdo_sqlite intl gd xml zip opcache'
+  CYPRESS_APT_PACKAGES: 'libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb'
 
 cache:
   paths:
     - drupal/vendor/
     - nuxt/node_modules/
+
+#
+# --- Lint Stage ---
+#
+# Root-level tooling only (package.json at the repo root) - none of this
+# needs PHP/Composer or nuxt/'s own dependencies, so it stays off the
+# heavier .php-node-setup image entirely.
+.node-lint:
+  # 22, not this repo's pinned 16 (or test_extension's 20) - the lint
+  # tools themselves need it: cspell requires >=22.18.0, markdownlint-cli2
+  # >=22, commitlint >=22.12.0. This template only runs root-level
+  # tooling, never touches the app's own runtime.
+  image: node:22
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+  before_script:
+    - npm install
+
+lint:js:
+  extends: .node-lint
+  stage: lint
+  interruptible: true
+  script:
+    - npm run lint:js
+
+lint:format:
+  extends: .node-lint
+  stage: lint
+  interruptible: true
+  script:
+    - npm run lint:format
+
+lint:cspell:
+  extends: .node-lint
+  stage: lint
+  interruptible: true
+  script:
+    - npm run lint:cspell
+
+lint:md:
+  extends: .node-lint
+  stage: lint
+  interruptible: true
+  script:
+    - npm run lint:md
+
+lint:knip:
+  extends: .node-lint
+  stage: lint
+  interruptible: true
+  script:
+    - npm run lint:knip
+
+lint:audit:
+  extends: .node-lint
+  stage: lint
+  interruptible: true
+  script:
+    - npm run lint:audit
+
+lint:renovate:
+  extends: .node-lint
+  stage: lint
+  interruptible: true
+  script:
+    - npm run lint:renovate
+
+# Only checks the most recent commit - good enough to catch the common
+# case (a single non-conforming commit message) without the complexity of
+# resolving a full MR commit range across both push and merge_request
+# pipeline triggers.
+lint:commit:
+  extends: .node-lint
+  stage: lint
+  interruptible: true
+  script:
+    - npx commitlint --from HEAD~1 --to HEAD --verbose
+
+lint:json:
+  stage: lint
+  interruptible: true
+  image: python:3-slim
+  script:
+    - |
+      rc=0; count=0
+      while IFS= read -r -d '' f; do
+        count=$((count + 1))
+        if python3 -m json.tool "$f" > /dev/null 2>&1; then
+          echo "  [PASS] $f"
+        else
+          echo "  [FAIL] $f"
+          rc=1
+        fi
+      done < <(find . -name '*.json' -not -path '*/.git/*' -not -path '*/node_modules/*' \
+        -not -path '*/nuxt/*' -not -path '*/drupal/*' -not -path '*/.vscode/*' -print0)
+      echo "--- $count JSON file(s) checked ---"
+      exit "$rc"
+
+lint:shell:
+  stage: lint
+  interruptible: true
+  image: bash:5
+  script:
+    - |
+      rc=0; count=0
+      while IFS= read -r -d '' f; do
+        count=$((count + 1))
+        if bash -n "$f" 2>/dev/null; then
+          echo "  [PASS] $f"
+        else
+          echo "  [FAIL] $f"
+          rc=1
+        fi
+      done < <(find . -name '*.sh' -not -path '*/.git/*' -not -path '*/node_modules/*' \
+        -not -path '*/nuxt/*' -not -path '*/drupal/*' -print0)
+      echo "--- $count shell file(s) checked ---"
+      exit "$rc"
+
+lint:yaml:
+  stage: lint
+  interruptible: true
+  image: python:3-slim
+  script:
+    - pip install yamllint -q
+    - 'yamllint -d "{extends: default, rules: {line-length: {max: 200, level: warning}}}" .gitlab-ci.yml .github/workflows/ci.yml'
+
+# Prose-quality lint for README.md and this repo's bundled VS Code
+# walkthrough content: flags AI-generated-text tells (em-dash overuse,
+# hedging, anthropomorphic verbs, overused vocabulary, etc.) via the
+# vale-ai-tells style package, scoped by .vale.ini to hand-authored prose
+# only. Blocking: all real findings against current content are fixed,
+# and ai-tells.ColonUsage is disabled (see the comment in .vale.ini) since
+# it can't tell this repo's "**term**: Description" convention apart from
+# a genuine AI tell.
+lint:vale:
+  stage: lint
+  interruptible: true
+  image: python:3-slim
+  script:
+    - |
+      vale_version="3.17.1"
+      arch="$(uname -m)"
+      case "$arch" in
+        aarch64|arm64)
+          vale_arch=arm64
+          vale_sha256=92d91ebf9ee69ec077379be95cd09e6710ab33d3d5bab66bb482e66ebc80dc23
+          ;;
+        x86_64)
+          vale_arch=64-bit
+          vale_sha256=db947f89f2292e6a0381a61de155f6a5f5cb4cb460ca178ea412ef605559cefd
+          ;;
+        *) echo "Unsupported architecture: $arch" >&2; exit 1 ;;
+      esac
+      apt-get update -yqq && apt-get install -yqq curl >/dev/null
+      curl -sL --max-time 60 "https://github.com/vale-cli/vale/releases/download/v${vale_version}/vale_${vale_version}_Linux_${vale_arch}.tar.gz" -o /tmp/vale.tar.gz
+      echo "${vale_sha256}  /tmp/vale.tar.gz" | sha256sum -c - || { echo "vale checksum mismatch" >&2; exit 1; }
+      tar -xzf /tmp/vale.tar.gz -C /usr/local/bin vale
+      chmod +x /usr/local/bin/vale
+    - |
+      ai_tells_version="1.31.0"
+      ai_tells_sha256="bc1267248f13e65928475c439ad7ae1bf806a20d09254c08d7d8c4a9c8b811f0"
+      curl -sL --max-time 60 "https://github.com/tbhb/vale-ai-tells/releases/download/v${ai_tells_version}/ai-tells.zip" -o /tmp/ai-tells.zip
+      echo "${ai_tells_sha256}  /tmp/ai-tells.zip" | sha256sum -c - || { echo "ai-tells checksum mismatch" >&2; exit 1; }
+      python3 -c "
+      import zipfile, os
+      with zipfile.ZipFile('/tmp/ai-tells.zip') as z:
+          for name in z.namelist():
+              if name.startswith('ai-tells/styles/') and not name.endswith('/'):
+                  target = os.path.join('styles', name[len('ai-tells/styles/'):])
+                  os.makedirs(os.path.dirname(target), exist_ok=True)
+                  with open(target, 'wb') as f:
+                      f.write(z.read(name))
+      "
+    - vale README.md .devcontainer/extensions/quickstart-guide/media/*.md
 
 .php-node-setup:
   image: php:8.4
@@ -38,6 +217,37 @@ build:
     paths:
       - drupal/vendor
       - nuxt/node_modules
+
+# No PHP/Composer/npm install needed - the extension is pure declarative
+# JSON + markdown, and test.mjs uses only Node's own built-in modules.
+test_extension:
+  stage: test
+  image: node:20
+  needs: []
+  script:
+    - node .devcontainer/extensions/quickstart-guide/test.mjs
+
+# Component-level unit tests + coverage, mirroring the GitHub Actions
+# workflow's Codecov upload (Jest's collectCoverage is already on in
+# nuxt/jest.config.js). GitLab-native: the coverage: regex below feeds
+# the MR widget/pipeline coverage graph directly, no external service.
+test_unit:
+  extends: .php-node-setup
+  stage: test
+  needs: []
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  script:
+    - cd nuxt
+    - npm install
+    - npm run test:unit
+  artifacts:
+    when: always
+    paths:
+      - nuxt/coverage
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: nuxt/coverage/cobertura-coverage.xml
 
 test_e2e:
   extends: .php-node-setup
@@ -83,13 +293,13 @@ preview:
   when: manual
   needs: []
   variables:
-    PREVIEW_DURATION_SECONDS: "3600"
-    PREVIEW_MODE: "both"
+    PREVIEW_DURATION_SECONDS: '3600'
+    PREVIEW_MODE: 'both'
     # Pinned release + SHA-256 so a changed upstream artifact can never
     # execute with this job's credentials.
-    CLOUDFLARED_VERSION: "2026.8.2"
-    CLOUDFLARED_SHA256: "fcfb02b575a52ca1af2e3267af4e1517bcdeb30ac48c834b69abaed3c0576ad2"
-    CODE_SERVER_VERSION: "v4.132.0"
+    CLOUDFLARED_VERSION: '2026.8.2'
+    CLOUDFLARED_SHA256: 'fcfb02b575a52ca1af2e3267af4e1517bcdeb30ac48c834b69abaed3c0576ad2'
+    CODE_SERVER_VERSION: 'v4.132.0'
   script:
     - cd drupal
     - .devtools/assemble
@@ -132,7 +342,14 @@ preview:
       set -eu
       CODE_SERVER_ENABLED=false
       if [ -n "${PREVIEW_CODE_PASSWORD:-}" ]; then
-        curl -fsSL https://code-server.dev/install.sh | sh -s -- --version "$CODE_SERVER_VERSION"
+        # Pinned .deb + SHA-256, not the mutable install.sh - the
+        # installer script runs with PREVIEW_CODE_PASSWORD in its
+        # environment, so a changed upstream script must never
+        # execute here. Update both together when bumping the version.
+        CODE_SERVER_DEB_SHA256="18e0e69920ab23b725cb219fb42bc045a908421448cf496a3124314e1a02bcf1"
+        curl -fsSL --max-time 120 "https://github.com/coder/code-server/releases/download/${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION#v}_amd64.deb" -o /tmp/code-server.deb
+        echo "${CODE_SERVER_DEB_SHA256}  /tmp/code-server.deb" | sha256sum -c - || { echo "code-server checksum mismatch" >&2; exit 1; }
+        dpkg -i /tmp/code-server.deb
         PASSWORD="$PREVIEW_CODE_PASSWORD" nohup code-server --auth password --bind-addr 0.0.0.0:8080 "$CI_PROJECT_DIR" > /tmp/code-server.log 2>&1 &
         nohup cloudflared tunnel --url http://localhost:8080 > /tmp/tunnel-code.log 2>&1 &
         CODE_SERVER_ENABLED=true
@@ -174,12 +391,6 @@ preview:
       if [ "$CODE_SERVER_ENABLED" = "true" ] && [ -z "$CODE_URL" ]; then echo "code-server tunnel not ready"; tail -n 20 /tmp/tunnel-code.log || true; FAILED=1; fi
       [ "$FAILED" -eq 0 ] || exit 1
 
-      # One-time login link: a credential, same gate as code-server.
-      LOGIN_LINK=""
-      if [ "$CODE_SERVER_ENABLED" = "true" ] && [ -n "$BACKEND_URL" ]; then
-        LOGIN_LINK=$(cd "$CI_PROJECT_DIR/drupal" && vendor/bin/drush -r "$CI_PROJECT_DIR/drupal/web" -y uli --uri="$BACKEND_URL" 2>/dev/null || true)
-      fi
-
       echo "=================================================="
       if [ "$PREVIEW_MODE" != "dev" ]; then
         echo " Frontend (prod): ${FRONTEND_URL:-not ready - check /tmp/tunnel-frontend.log}"
@@ -189,10 +400,13 @@ preview:
       fi
       echo " Backend:    ${BACKEND_URL:-not ready - check /tmp/tunnel-backend.log}"
       if [ "$CODE_SERVER_ENABLED" = "true" ]; then
-        echo " Login link: ${LOGIN_LINK:-not ready}"
+        # No login link in the log: `drush uli` output is a live
+        # credential, and job logs are readable by more people than
+        # you think even in owner mode. Get one from the code-server
+        # terminal instead - it never touches the log there.
+        echo " Login link: run \`make drush uli\` in a code-server terminal"
         echo " Code:       ${CODE_URL:-not ready} (password: your PREVIEW_CODE_PASSWORD variable)"
       else
-        echo " Login link: hidden - set the PREVIEW_CODE_PASSWORD variable to enable"
         echo " Code:       disabled - set the PREVIEW_CODE_PASSWORD variable to enable"
       fi
       echo " Note:       tunnel URLs survive restarts on the same port."
