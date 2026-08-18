@@ -15,6 +15,7 @@ druxt
 druxtjs
 druxtsite
 endswith
+gdlib
 giget
 hverlin
 intelephense
@@ -42,6 +43,7 @@ nuxt
 nuxtjs
 nvmrc
 opcache
+openvscode
 phpsab
 phpstan
 repository
@@ -53,4 +55,5 @@ trixie
 updb
 upterm
 valeryan
+vfox
 xauth
