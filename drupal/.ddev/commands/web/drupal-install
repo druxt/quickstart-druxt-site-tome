@@ -4,13 +4,30 @@
 ## Usage: drupal-install
 ## Example: "ddev drupal-install"
 
+# Fail fast: a failed step must fail the whole install, not leave a
+# half-provisioned site that later commands "fix" silently.
+set -euo pipefail
+
 # Install composer dependencies.
 composer install
 
-# Install Drupal with Tome.
-drush -y tome:install
+# Install Drupal directly from the committed config (adopts its site UUID -
+# a plain `tome:install` does site-install then a separate config:import,
+# which fails with "Site UUID in source storage does not match the target
+# storage" since a fresh site-install generates its own random UUID first).
+# simple_oauth, druxt, and JSON:API read-write are already enabled in the
+# committed config, so this is the one step that needs.
+drush -y site-install --existing-config
 
-# Configure and generate keys for Simple OAuth.
-# drush -y config:set simple_oauth.settings public_key ../keys/public.key
-# drush -y config:set simple_oauth.settings private_key ../keys/private.key
-# drush simple-oauth:generate-keys ../keys
+# Import Tome-tracked content and files (config was already handled above).
+drush -y tome:import
+
+# Generate keys for Simple OAuth (public_key/private_key config values are
+# already committed, pointing here). Absolute path on purpose: this
+# command's cwd is /var/www/html (the mounted project root), so a
+# relative ../keys would land OUTSIDE the mount - ephemeral, and not the
+# drupal/keys/ location the committed config resolves to (Drupal-side
+# paths resolve relative to the app root web/).
+KEYS_DIR="/var/www/html/keys"
+mkdir -p "$KEYS_DIR"
+drush simple-oauth:generate-keys "$KEYS_DIR"
