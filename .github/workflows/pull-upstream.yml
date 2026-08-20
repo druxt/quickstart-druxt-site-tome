@@ -56,9 +56,9 @@ jobs:
           base: develop
           body: ''
           branch: upstream
-          commit-message: "chore: rebase from upstream"
+          commit-message: 'chore: rebase from upstream'
           delete-branch: true
-          title: "chore: rebase from upstream"
+          title: 'chore: rebase from upstream'
       - name: Pull Request output
         if: ${{ steps.cpr.outputs.pull-request-number }}
         run: |
