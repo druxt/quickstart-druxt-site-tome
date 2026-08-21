@@ -1,12 +1,12 @@
 {
-    "_hash": "0b203d9761bd9111892ec4bb8a354538eb8cd1cefccf663e7559b9e1337d405a",
+    "_hash": "ab06c2732e6997777e25ed4b8b189fc9757e5273cbcbe8612e783f7a8d18ebdb",
     "patches": {
         "drupal/druxt": [
             {
                 "package": "drupal/druxt",
-                "description": "Fix ViewsPathTranslatorSubscriber crash on views with no JSON:API route - https://gitlab.local/drupal/druxt/-/merge_requests/5",
+                "description": "Fix ViewsPathTranslatorSubscriber crash on views with no JSON:API route",
                 "url": "patches/druxt-views-path-translator-route-name.patch",
-                "sha256": "be2ed18e01aed8fc4f328ba25b7bb79681a891b29540a4db52c103c783f5c3be",
+                "sha256": "fd5654d5cdcea769f3be061dd0e74e9fdf03af960b929959b8d806dbad147077",
                 "depth": 1,
                 "extra": {
                     "provenance": "root"
@@ -16,7 +16,7 @@
         "drupal/tome": [
             {
                 "package": "drupal/tome",
-                "description": "Fix subprocess commands built with a joined string, not an argv array - https://gitlab.local/drupal/tome/-/merge_requests/1",
+                "description": "Fix subprocess commands built with a joined string, not an argv array",
                 "url": "patches/tome-process-array-not-string.patch",
                 "sha256": "4cb12b1048c90d4e7a24b62fe589c6a94c82007c95478c613132030af9e7d867",
                 "depth": 1,

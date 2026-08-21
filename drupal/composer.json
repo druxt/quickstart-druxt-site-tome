@@ -91,10 +91,10 @@
         },
         "patches": {
             "drupal/druxt": {
-                "Fix ViewsPathTranslatorSubscriber crash on views with no JSON:API route - https://gitlab.local/drupal/druxt/-/merge_requests/5": "patches/druxt-views-path-translator-route-name.patch"
+                "Fix ViewsPathTranslatorSubscriber crash on views with no JSON:API route": "patches/druxt-views-path-translator-route-name.patch"
             },
             "drupal/tome": {
-                "Fix subprocess commands built with a joined string, not an argv array - https://gitlab.local/drupal/tome/-/merge_requests/1": "patches/tome-process-array-not-string.patch"
+                "Fix subprocess commands built with a joined string, not an argv array": "patches/tome-process-array-not-string.patch"
             }
         }
     }
