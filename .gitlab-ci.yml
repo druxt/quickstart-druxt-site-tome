@@ -227,6 +227,18 @@ build:
       - drupal/vendor
       - nuxt/node_modules
 
+# Coverage reporting needs Node 20+, and these tests use only node:test
+# and node:assert, so they run on a modern Node with nothing installed.
+test_scripts:
+  stage: test
+  image: node:22
+  needs: []
+  script:
+    - npm run test:scripts:coverage
+  artifacts:
+    paths:
+      - coverage/scripts-lcov.info
+
 # Component-level unit tests + coverage, mirroring the GitHub Actions
 # workflow's Codecov upload (Jest's collectCoverage is already on in
 # nuxt/jest.config.js). GitLab-native: the coverage: regex below feeds
