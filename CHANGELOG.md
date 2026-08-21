@@ -72,6 +72,17 @@ minor is for.
 - Druxt modules moved from `buildModules` to `modules`. `buildModules`
   are not loaded by `nuxt start`, so the proxy and authentication
   registrations vanished in production while the dev server looked fine.
+- The dev server moves to the next free port between 3000 and 3009 when
+  3000 is taken, and prints which one it took. Nuxt's own fallback picks a
+  random port, which silently breaks the OAuth callback; every port in
+  that range has a callback registered, so any of them is safe. A `PORT`
+  you name is still yours - a busy one fails, rather than moving
+  somewhere you did not ask for.
+- The dev server refuses a port with no registered OAuth callback. A
+  `PORT` outside 3000-3009 that `OAUTH_CALLBACK` does not name started
+  fine and then failed only at login, since the browser builds its
+  callback from the port it is on. Backends this repo did not provision
+  are left alone: their consumers were registered out of sight.
 - The OAuth consumer is created with the fields Simple OAuth 6 actually
   reads. It looks consumers up by `client_id` rather than uuid, and
   requires `grant_types`, but enforces both only through the entity

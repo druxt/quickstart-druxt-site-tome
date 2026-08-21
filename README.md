@@ -75,7 +75,8 @@ On Windows, use the dev container, WSL2, or a container backend - see
    ```
 
    - Drupal backend: http://127.0.0.1:8888
-   - Nuxt frontend: http://localhost:3000
+   - Nuxt frontend: http://localhost:3000 (or the next free port up to
+     3009, which it prints)
    - One-time Drupal login: `npm run login`
 
 `npm run dev` and `npm run start` automatically start the local backend
@@ -144,6 +145,23 @@ Then:
 3. `npm run dev` as above. `npm run drush -- <command>` is proxied
    through `lando drush`.
 
+### Troubleshooting
+
+#### Port 3000 is already in use
+
+`npm run dev` takes the next free port between 3000 and 3009 and says
+which one it picked. Provisioning registers an OAuth callback for every
+port in that range, so login keeps working on whichever one it uses.
+
+Naming a port yourself turns that off: `PORT=3005 npm run dev` uses
+3005 or fails, because a port you asked for is a decision rather than a
+default. If the whole range is busy, `npm run dev` says so instead of
+letting Nuxt fall back to a random port and break login.
+
+A port outside 3000-3009 has no registered callback, so `npm run dev`
+refuses that too. To use one, set `OAUTH_CALLBACK` in `.env` to
+`http://localhost:<port>/callback` and re-run `npm run provision`.
+
 #### Login fails with invalid_client in a dev container
 
 The browser builds the OAuth callback from its own address. An IDE
@@ -191,7 +209,8 @@ npm run dev
 ```
 
 - Drupal backend: http://127.0.0.1:8888
-- Nuxt frontend: http://localhost:3000
+- Nuxt frontend: http://localhost:3000 (or the next free port up to
+  3009, which it prints)
 
 ## How to use it
 
