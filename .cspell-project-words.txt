@@ -24,6 +24,7 @@ extensionless
 gdlib
 giget
 hverlin
+instantiator
 intelephense
 interruptible
 jonaseberle
@@ -55,6 +56,7 @@ openssl
 openvscode
 phpsab
 phpstan
+phpunit
 recognise
 recognised
 recognises
