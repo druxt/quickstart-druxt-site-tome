@@ -8,6 +8,7 @@ behaviour
 bmewburn
 bootstrapvue
 commitlint
+cweagans
 databaseless
 davidanson
 dbaeumer
