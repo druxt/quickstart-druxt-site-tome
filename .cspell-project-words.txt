@@ -1,3 +1,8 @@
+Lando
+Landofile
+PKCE
+Stanislav
+Xours
 appserver
 behaviour
 bmewburn
@@ -14,6 +19,7 @@ druxt
 druxtjs
 druxtsite
 endswith
+extensionless
 gdlib
 giget
 hverlin
@@ -22,8 +28,6 @@ interruptible
 jonaseberle
 knip
 lando
-Lando
-Landofile
 lhotari
 libasound
 libfreetype
@@ -50,14 +54,12 @@ openssl
 openvscode
 phpsab
 phpstan
-PKCE
 recognise
 recognised
 recognises
 repository
 setuptools
 shivammathur
-Stanislav
 starterkit
 startswith
 tokenless
@@ -68,4 +70,3 @@ upterm
 valeryan
 vfox
 xauth
-Xours
