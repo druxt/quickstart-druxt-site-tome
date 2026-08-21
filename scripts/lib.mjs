@@ -344,6 +344,25 @@ export function foregroundNpm(args, opts = {}) {
 }
 
 /**
+ * Refuse to start the frontend without a consumer to authenticate as.
+ *
+ * Nuxt otherwise dies inside druxt-auth with "requires a clientId to be
+ * provided", which says nothing about what to do. The value is empty
+ * whenever provisioning did not finish, so point at that instead.
+ */
+export function ensureOauthClientId(env = readEnv()) {
+  if (env.OAUTH_CLIENT_ID) {
+    return
+  }
+  const backend = backendInfo(env)
+  const fix =
+    backend.url && !backend.managed
+      ? "Create a consumer with the backend's own tooling (DDEV: `ddev druxt-add-consumer`,\n  Lando: `lando druxt-add-consumer`) and copy the printed UUID into .env."
+      : 'Run `npm run setup` to provision the backend - it writes this value.'
+  exitWithError(`OAUTH_CLIENT_ID is not set in .env.\n\n  ${fix}`)
+}
+
+/**
  * Make sure a backend is available for the frontend to talk to:
  * start the .devtools PHP server when BASE_URL is loopback and down;
  * never start anything for DDEV/external backends.
