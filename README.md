@@ -1,103 +1,251 @@
 # DruxtSite quickstart - Drupal with Tome sync
 
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/druxt/quickstart-druxt-site-tome/tree/develop.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/druxt/quickstart-druxt-site-tome/tree/develop)
-
 > One click, Fully Decoupled Drupal Site starter-kit with Druxt.
 
 DruxtSite connects Drupal to Nuxt via JSON:API to provide a framework for building a Fully Decoupled site.
 
-This repostory provides a quickstart installation of:
-- Drupal 9 with Tome sync
+This repository includes:
+
+- Drupal 11 with Tome sync
 - Nuxt 2
 - DruxtSite
 - DruxtAuth
 - Node v16
 
-
 ## Quickstart
 
-Try it before you fork it:
+```bash
+npx giget@1 gh:druxt/quickstart-druxt-site-tome#develop my-druxt-site --install
+cd my-druxt-site
+npm run dev
+```
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/druxt/quickstart-druxt-site-tome)
+`--install` runs the full setup automatically: frontend, Composer, and a
+local Drupal 11 + SQLite backend, installed straight from the committed
+Tome config and content. It needs PHP 8.3 or newer and Composer on
+`PATH`. Without them it installs the frontend only, prints the next steps
+and still exits cleanly, so the install never fails on a machine that
+cannot run the backend.
 
+The `@1` is deliberate. giget 2 and newer call `fetch`, which needs Node
+18, and this site runs on [Node 16](.nvmrc) - an unpinned `giget@latest`
+fails there with `fetch is not defined`. giget 1 bundles a fetch
+polyfill, so one Node version covers both the download and the site.
+
+Prefer to start from your own repository? Use the GitHub
+[Use this template](https://github.com/druxt/quickstart-druxt-site-tome/generate)
+button, then clone the repository it creates.
 
 ## Getting started
 
-### Local development (ddev)
+Requires [Node 16](.nvmrc) and one of:
 
-1. Click the **Use this template** button in GitHub and follow the on-screen instructions to **Create a new repository**.
+- PHP 8.3 or newer (with the pdo_sqlite extension) + Composer on your
+  machine
+  (Drush comes with the backend - no global install needed), or
+- [DDEV](https://ddev.readthedocs.io) or [Lando](https://lando.dev) (Docker)
 
-2. Clone the repository locally.
+On Windows, use the dev container, WSL2, or a container backend - see
+[Windows](#windows).
 
-   Example: `git clone git@github.com:druxt/quickstart-druxt-site-tome.git`
+[nvm](https://github.com/nvm-sh/nvm) or [mise](https://mise.jdx.dev/) users:
+`nvm use` / `mise install` provides the pinned versions.
 
-3. Setup an `.env` file and update as required: `cp .env.example .env`
+### One-command setup (local PHP + SQLite, no Docker)
 
-4. Install and setup Drupal:
+1. Create your repository from this template (or clone it), then from
+   the repository root:
 
-   (from repository root)
-
+   ```bash
+   npm run setup
    ```
-   cd drupal
+
+   This installs the frontend dependencies, provisions Drupal from the
+   committed config and Tome content (SQLite, throwaway) with Druxt,
+   Simple OAuth and an OAuth Consumer, starts the backend, and writes
+   `BASE_URL` + `OAUTH_CLIENT_ID` to `.env`.
+
+   `make setup` works too, as do `make dev`, `make login`, `make info`,
+   `make reset`, etc.
+
+2. Start developing:
+
+   ```bash
+   npm run dev
+   ```
+
+   - Drupal backend: http://127.0.0.1:8888
+   - Nuxt frontend: http://localhost:3000 (or the next free port up to
+     3009, which it prints)
+   - One-time Drupal login: `npm run login`
+
+`npm run dev` and `npm run start` automatically start the local backend
+if it is not already running, and leave external backends alone.
+
+Other commands: `npm run stop`, `npm run reset` (fresh site), `npm run
+info`, `npm run login`, `npm run devtools -- <script>` for direct access
+to `drupal/.devtools/`. See `drupal/.devtools/README.md` for what each
+backend script does.
+
+### Local development with [DDEV](https://ddev.readthedocs.io)
+
+Using DDEV? Keep `BASE_URL` as the `*.ddev.site` URL in `.env`
+(`cp .env.example .env` gives you that). Then:
+
+1. Frontend (from repository root):
+
+   ```bash
+   npm run setup
+   ```
+
+   Detecting the DDEV `BASE_URL`, this installs the frontend only and
+   prints the backend steps.
+
+2. Backend (from `drupal/`):
+
+   ```bash
    ddev start
    ddev drupal-install
    ddev druxt-add-consumer
    ```
 
-5. Install and run Nuxt:
+   `druxt-add-consumer` prints `OAUTH_CLIENT_ID=...` - copy it into
+   `.env`.
 
-   (from repository root)
+3. `npm run dev` as above. The DDEV backend is never auto-started or
+   auto-stopped from the npm scripts.
 
+### Local development with [Lando](https://lando.dev)
+
+Set `BASE_URL` in `.env` to your Lando URL
+(`https://druxt-quickstart-tome.lndo.site` for the bundled `drupal/.lando.yml`).
+Then:
+
+1. Frontend (from repository root):
+
+   ```bash
+   npm run setup
    ```
-   cd nuxt
-   nvm use
-   npm install
-   npm run dev
+
+   Any non-loopback `BASE_URL` is treated as a backend this repo does not
+   manage, so this installs the frontend only.
+
+2. Backend (from `drupal/`):
+
+   ```bash
+   lando start
+   lando drupal-install
+   lando druxt-add-consumer
    ```
 
+   `druxt-add-consumer` prints `OAUTH_CLIENT_ID=...` - copy it into
+   `.env`. Both commands run the same install steps as their DDEV
+   counterparts.
 
-### Cloud development (Gitpod.io)
+3. `npm run dev` as above. `npm run drush -- <command>` is proxied
+   through `lando drush`.
 
-1. Click the **Use this template** button in GitHub and follow the on-screen instructions to **Create a new repository**.
+### Troubleshooting
 
-2. Once the repository has been generated, open it in Gitpod by appending `https://gitpod.io#` to the GitHub url.
+#### Port 3000 is already in use
 
-   Example: `https://gitpod.io#github.com/druxt/quickstart-druxt-site-tome`
+`npm run dev` takes the next free port between 3000 and 3009 and says
+which one it picked. Provisioning registers an OAuth callback for every
+port in that range, so login keeps working on whichever one it uses.
 
-   _Note:_ If this is your first time using Gitpod, you can signup for a free plan with your Github account.
+Naming a port yourself turns that off: `PORT=3005 npm run dev` uses
+3005 or fails, because a port you asked for is a decision rather than a
+default. If the whole range is busy, `npm run dev` says so instead of
+letting Nuxt fall back to a random port and break login.
 
-3. Wait for your codebase to build.
+A port outside 3000-3009 has no registered callback, so `npm run dev`
+refuses that too. To use one, set `OAUTH_CALLBACK` in `.env` to
+`http://localhost:<port>/callback` and re-run `npm run provision`.
 
-   _Note:_ To speed up this step, enable Prebuilds by follow the instructions @ https://www.gitpod.io/docs/prebuilds#enable-prebuilt-workspaces
+#### Login fails with invalid_client in a dev container
 
+The browser builds the OAuth callback from its own address. An IDE
+forwarding container port 3000 uses the next free host port when 3000 is
+taken (3001, 3002, ...), and Drupal rejects an unregistered callback as
+`invalid_client`. Provisioning registers `localhost:3000-3009/callback`
+to absorb this - if forwarding assigns a port outside that range, free
+up host ports or re-provision with a matching `OAUTH_CALLBACK`.
+
+### Windows
+
+The local PHP backend does not run on Windows directly: it manages a PHP
+built-in server with `nohup`, `lsof`, `ps` and `kill`. `npm run setup`
+says so rather than failing part-way through.
+
+Any of these work instead, with no changes to the repository:
+
+- the dev container,
+- WSL2, running the same commands inside your Linux distribution,
+- DDEV or Lando, setting `BASE_URL` to the container URL.
+
+### Development Container (VS Code, Codespaces, DevPod)
+
+`.devcontainer/devcontainer.json` gives you a ready environment: Node
+16, PHP 8.4, Composer, and `mise` (config pre-trusted), provisioned
+through `drupal/.devtools` (PHP built-in server + SQLite) - no
+Docker-in-Docker needed.
+
+[![Open in DevPod!](https://devpod.sh/assets/open-in-devpod.svg)](https://devpod.sh/open#https://github.com/druxt/quickstart-druxt-site-tome)
+
+| Tool                        | How                                                                                                                                                                                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| VS Code                     | Clone, open the folder, run **Dev Containers: Reopen in Container**                                                                                                                                                                        |
+| GitHub Codespaces           | On the repository page: **Code → Open with Codespaces**                                                                                                                                                                                    |
+| [DevPod](https://devpod.sh) | Click the badge above, run `devpod up https://github.com/druxt/quickstart-druxt-site-tome` (CLI), or add the same URL as a workspace source in DevPod's desktop app - all three read this same `devcontainer.json`, no extra config needed |
+
+First open runs `npm install` at the repository root, which triggers
+the same full setup pipeline as [Quickstart](#quickstart) above:
+frontend dependencies, Composer, Drupal installed straight from the
+committed Tome config and content, and the backend started and ready.
+Then:
+
+```bash
+npm run dev
+```
+
+- Drupal backend: http://127.0.0.1:8888
+- Nuxt frontend: http://localhost:3000 (or the next free port up to
+  3009, which it prints)
 
 ## How to use it
 
-Your environment contains a pre-install, pre-configured and running instance of Drupal with Tome, and Nuxt with the DruxtSite module enabled.
+Your environment contains a pre-installed, pre-configured and running instance of Drupal with Tome, and Nuxt with the DruxtSite module enabled.
 
-You can access the services in your browser, via the **Remote Explorer** extension, or via the URL pattern: `https://[PORT]-[GITPOD_ID].[GITPOD_SERVER].gitpod.io`
-
+In a Development Container (VS Code, Codespaces, DevPod), forwarded ports are accessible via your editor's **Ports** panel, or Codespaces' own URL pattern for forwarded ports.
 
 ## Services
 
-| Port | Service |
-| -- | -- |
-| `3000` | Nuxt.js |
-| `3003` | Storybook |
-| `8080` | Drupal |
-
+| Port   | Service                                                                               |
+| ------ | ------------------------------------------------------------------------------------- |
+| `3000` | Nuxt.js                                                                               |
+| `3003` | Storybook                                                                             |
+| `8888` | Drupal (local `.devtools` backend - DDEV serves at its own `*.ddev.site` URL instead) |
 
 ## Tools
 
 ### DDEV
 
-> DDEV is an open source tool that makes it dead simple to get local PHP development environments up and running within minutes. 
+> DDEV is an open-source tool that makes it dead simple to get local PHP development environments up and running within minutes.
 
 DDEV is used to manage the Drupal instance, and provides a CLI that can be used to run common drupal tasks, including `ddev drush`.
 
 These commands should be run from within the `/drupal` folder.
 
 Refer to the documentation for more details: https://ddev.readthedocs.io
+
+### Lando
+
+> Lando is a free, open-source development tool that allows developers to
+> easily specify and construct the exact environment they need to build
+> their applications.
+
+- [lando.dev](https://lando.dev)
+- Config: [drupal/.lando.yml](drupal/.lando.yml)
 
 ### @nuxtjs/auth-next
 
@@ -119,13 +267,11 @@ Druxt integrates with the Nuxt Storybook module to provide zero-configuration, a
 
 To start Storybook, navigate to the `nuxt` directory and run `npx nuxt storybook`.
 
-
 ### Tome sync
 
 Tome sync is a static storage system for content, allowing you to keep your content up to date without the need of a database.
 
 See the project page for more details: https://www.drupal.org/project/tome
-
 
 ## License
 
