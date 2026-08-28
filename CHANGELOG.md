@@ -69,6 +69,12 @@ minor is for.
 
 ### Bug fixes
 
+- Login now changes what the site shows. JSON:API was not proxied through
+  Nuxt, so the client was handed the backend's absolute URL and its
+  requests went cross-origin, carrying none of the app's own headers -
+  including the bearer token druxt-auth sets after a successful login.
+  Every request stayed anonymous, so the account menu kept rendering
+  "Log in" to someone who had just logged in.
 - Druxt modules moved from `buildModules` to `modules`. `buildModules`
   are not loaded by `nuxt start`, so the proxy and authentication
   registrations vanished in production while the dev server looked fine.

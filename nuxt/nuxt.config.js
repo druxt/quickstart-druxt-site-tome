@@ -76,6 +76,12 @@ export default {
     baseUrl,
     // Disable deprecated Entity fields.
     entity: { components: { fields: false }},
+    // Proxy JSON:API through Nuxt. Without this the client is given the
+    // backend's absolute URL, so its requests are cross-origin and carry
+    // none of the app's own headers - including the bearer token
+    // druxt-auth sets. Login then succeeds while every request stays
+    // anonymous, and the account menu keeps rendering "Log in".
+    proxy: { api: true },
     // Set the default theme to render Site regions.
     site: { theme: 'olivero' },
   },
